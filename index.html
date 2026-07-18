@@ -533,6 +533,138 @@
       word-break: break-word;
     }
 
+    /* ── Desktop widgets ── */
+    .widget-panel {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 100;
+      width: 148px;
+    }
+
+    .widget {
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #fff #000 #000 #fff;
+      box-shadow: 1px 1px 0 #000;
+    }
+
+    .widget-header {
+      background: linear-gradient(to right, #000080, #1084d0);
+      color: #fff;
+      font-weight: bold;
+      font-size: 10px;
+      padding: 2px 5px;
+    }
+
+    .widget-body {
+      padding: 4px 6px;
+    }
+
+    .weather-widget {
+      cursor: pointer;
+    }
+
+    .weather-widget:active .widget-body {
+      box-shadow:
+        inset 1px 1px 0 #808080,
+        inset -1px -1px 0 #fff;
+    }
+
+    .weather-summary {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .weather-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .weather-temp {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .weather-location {
+      font-size: 9px;
+      color: #404040;
+      margin-top: 1px;
+    }
+
+    .weather-details {
+      display: none;
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid #808080;
+      font-size: 10px;
+    }
+
+    .weather-widget.expanded .weather-details {
+      display: block;
+    }
+
+    .weather-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 1px 0;
+    }
+
+    .weather-row span:last-child {
+      font-weight: bold;
+    }
+
+    .bluetooth-widget {
+      cursor: default;
+    }
+
+    .bt-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 9px;
+      color: #404040;
+      margin-bottom: 4px;
+      padding-bottom: 3px;
+      border-bottom: 1px solid #808080;
+    }
+
+    .bt-dot {
+      width: 6px;
+      height: 6px;
+      background: #008000;
+      border: 1px solid #004000;
+    }
+
+    .bt-device {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 0;
+      font-size: 10px;
+    }
+
+    .bt-device .bt-icon {
+      font-size: 11px;
+      width: 14px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .bt-device .bt-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bt-device.disconnected {
+      color: #808080;
+    }
+
     /* ── Overlay to close menus ── */
     .overlay {
       position: fixed;
@@ -548,6 +680,49 @@
   </style>
 </head>
 <body>
+
+  <!-- Desktop widgets -->
+  <div class="widget-panel">
+    <div class="widget weather-widget" id="weather-widget">
+      <div class="widget-header">Weather</div>
+      <div class="widget-body">
+        <div class="weather-summary">
+          <span class="weather-icon">⛅</span>
+          <div>
+            <div class="weather-temp">24°C</div>
+            <div class="weather-location">Local Area</div>
+          </div>
+        </div>
+        <div class="weather-details">
+          <div class="weather-row"><span>Current</span><span>24°C</span></div>
+          <div class="weather-row"><span>High</span><span>31°C</span></div>
+          <div class="weather-row"><span>Low</span><span>18°C</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="widget bluetooth-widget">
+      <div class="widget-header">Bluetooth</div>
+      <div class="widget-body">
+        <div class="bt-status">
+          <span class="bt-dot"></span>
+          <span>Bluetooth On</span>
+        </div>
+        <div class="bt-device">
+          <span class="bt-icon">🎧</span>
+          <span class="bt-name">AirPods Pro</span>
+        </div>
+        <div class="bt-device">
+          <span class="bt-icon">⌨️</span>
+          <span class="bt-name">MX Keys</span>
+        </div>
+        <div class="bt-device disconnected">
+          <span class="bt-icon">⌚</span>
+          <span class="bt-name">Galaxy Watch</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Desktop -->
   <div class="desktop-icons">
@@ -720,6 +895,11 @@
     const aiSend = document.getElementById('ai-send');
     const aiInput = document.getElementById('ai-input');
     const aiMessages = document.getElementById('ai-messages');
+    const weatherWidget = document.getElementById('weather-widget');
+
+    weatherWidget.addEventListener('click', () => {
+      weatherWidget.classList.toggle('expanded');
+    });
 
     function closeWindow(id) {
       document.getElementById(id).classList.remove('open');
