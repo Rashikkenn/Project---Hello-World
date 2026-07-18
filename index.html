@@ -665,6 +665,45 @@
       color: #808080;
     }
 
+    .calc-widget {
+      cursor: default;
+    }
+
+    .calc-display {
+      background: #fff;
+      border: 2px solid;
+      border-color: #808080 #dfdfdf #dfdfdf #808080;
+      padding: 4px 6px;
+      margin-bottom: 4px;
+      text-align: right;
+      font-size: 14px;
+      font-weight: bold;
+      font-family: "Consolas", monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .calc-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+    }
+
+    .calc-btn {
+      height: 22px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .calc-btn.calc-op {
+      color: #000080;
+    }
+
+    .calc-btn.calc-wide {
+      grid-column: span 2;
+    }
+
     /* ── Overlay to close menus ── */
     .overlay {
       position: fixed;
@@ -719,6 +758,38 @@
         <div class="bt-device disconnected">
           <span class="bt-icon">⌚</span>
           <span class="bt-name">Galaxy Watch</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="widget calc-widget" id="calc-widget">
+      <div class="widget-header">Calculator</div>
+      <div class="widget-body">
+        <div class="calc-display" id="calc-display">0</div>
+        <div class="calc-buttons">
+          <button class="btn-3d calc-btn calc-op" data-calc="clear">C</button>
+          <button class="btn-3d calc-btn calc-op" data-calc="sign">±</button>
+          <button class="btn-3d calc-btn calc-op" data-calc="percent">%</button>
+          <button class="btn-3d calc-btn calc-op" data-calc="divide">÷</button>
+
+          <button class="btn-3d calc-btn" data-calc="7">7</button>
+          <button class="btn-3d calc-btn" data-calc="8">8</button>
+          <button class="btn-3d calc-btn" data-calc="9">9</button>
+          <button class="btn-3d calc-btn calc-op" data-calc="multiply">×</button>
+
+          <button class="btn-3d calc-btn" data-calc="4">4</button>
+          <button class="btn-3d calc-btn" data-calc="5">5</button>
+          <button class="btn-3d calc-btn" data-calc="6">6</button>
+          <button class="btn-3d calc-btn calc-op" data-calc="subtract">−</button>
+
+          <button class="btn-3d calc-btn" data-calc="1">1</button>
+          <button class="btn-3d calc-btn" data-calc="2">2</button>
+          <button class="btn-3d calc-btn" data-calc="3">3</button>
+          <button class="btn-3d calc-btn calc-op" data-calc="add">+</button>
+
+          <button class="btn-3d calc-btn calc-wide" data-calc="0">0</button>
+          <button class="btn-3d calc-btn" data-calc="decimal">.</button>
+          <button class="btn-3d calc-btn calc-op" data-calc="equals">=</button>
         </div>
       </div>
     </div>
@@ -1032,6 +1103,103 @@
 
     updateClock();
     setInterval(updateClock, 1000);
+
+    // ── Calculator widget ──
+    const calcDisplay = document.getElementById('calc-display');
+    const calcButtons = document.querySelectorAll('[data-calc]');
+
+    let calcCurrent = '0';
+    let calcPrevious = null;
+    let calcOperator = null;
+    let calcWaitingForNewValue = false;
+
+    function calcFormat(value) {
+      if (!isFinite(value)) return 'Error';
+      const str = value.toString();
+      if (str.length > 12) return value.toPrecision(10).replace(/\.?0+$/, '').replace(/\.?0+e/, 'e');
+      return str;
+    }
+
+    function calcUpdateDisplay() {
+      calcDisplay.textContent = calcCurrent;
+    }
+
+    function calcApplyOperator(a, b, op) {
+      switch (op) {
+        case 'add': return a + b;
+        case 'subtract': return a - b;
+        case 'multiply': return a * b;
+        case 'divide': return b === 0 ? NaN : a / b;
+        default: return b;
+      }
+    }
+
+    function calcHandle(action) {
+      if (!isNaN(parseInt(action, 10)) && action.length === 1) {
+        if (calcWaitingForNewValue) {
+          calcCurrent = action;
+          calcWaitingForNewValue = false;
+        } else {
+          calcCurrent = calcCurrent === '0' ? action : calcCurrent + action;
+        }
+        calcUpdateDisplay();
+        return;
+      }
+
+      switch (action) {
+        case 'clear':
+          calcCurrent = '0';
+          calcPrevious = null;
+          calcOperator = null;
+          calcWaitingForNewValue = false;
+          break;
+
+        case 'decimal':
+          if (calcWaitingForNewValue) {
+            calcCurrent = '0.';
+            calcWaitingForNewValue = false;
+          } else if (!calcCurrent.includes('.')) {
+            calcCurrent += '.';
+          }
+          break;
+
+        case 'sign':
+          calcCurrent = calcFormat(parseFloat(calcCurrent) * -1);
+          break;
+
+        case 'percent':
+          calcCurrent = calcFormat(parseFloat(calcCurrent) / 100);
+          break;
+
+        case 'add':
+        case 'subtract':
+        case 'multiply':
+        case 'divide':
+          if (calcOperator && !calcWaitingForNewValue) {
+            calcPrevious = calcApplyOperator(calcPrevious, parseFloat(calcCurrent), calcOperator);
+            calcCurrent = calcFormat(calcPrevious);
+          } else {
+            calcPrevious = parseFloat(calcCurrent);
+          }
+          calcOperator = action;
+          calcWaitingForNewValue = true;
+          break;
+
+        case 'equals':
+          if (calcOperator && calcPrevious !== null) {
+            calcCurrent = calcFormat(calcApplyOperator(calcPrevious, parseFloat(calcCurrent), calcOperator));
+            calcPrevious = null;
+            calcOperator = null;
+            calcWaitingForNewValue = true;
+          }
+          break;
+      }
+      calcUpdateDisplay();
+    }
+
+    calcButtons.forEach(btn => {
+      btn.addEventListener('click', () => calcHandle(btn.dataset.calc));
+    });
   </script>
 </body>
 </html>
