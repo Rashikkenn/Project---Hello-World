@@ -656,6 +656,7 @@
     }
 
     .bt-device .bt-name {
+      flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -663,6 +664,49 @@
 
     .bt-device.disconnected {
       color: #808080;
+    }
+
+    .bt-toggle {
+      position: relative;
+      width: 22px;
+      height: 11px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .bt-toggle input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .bt-toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #808080;
+      border: 1px solid;
+      border-color: #404040 #dfdfdf #dfdfdf #404040;
+    }
+
+    .bt-toggle-slider::before {
+      content: '';
+      position: absolute;
+      left: 1px;
+      top: 1px;
+      width: 7px;
+      height: 7px;
+      background: #c0c0c0;
+      border: 1px solid;
+      border-color: #fff #000 #000 #fff;
+    }
+
+    .bt-toggle input:checked + .bt-toggle-slider {
+      background: #008000;
+    }
+
+    .bt-toggle input:checked + .bt-toggle-slider::before {
+      transform: translateX(11px);
     }
 
     .calc-widget {
@@ -750,14 +794,26 @@
         <div class="bt-device">
           <span class="bt-icon">🎧</span>
           <span class="bt-name">AirPods Pro</span>
+          <label class="bt-toggle">
+            <input type="checkbox" checked>
+            <span class="bt-toggle-slider"></span>
+          </label>
         </div>
         <div class="bt-device">
           <span class="bt-icon">⌨️</span>
           <span class="bt-name">MX Keys</span>
+          <label class="bt-toggle">
+            <input type="checkbox" checked>
+            <span class="bt-toggle-slider"></span>
+          </label>
         </div>
         <div class="bt-device disconnected">
           <span class="bt-icon">⌚</span>
           <span class="bt-name">Galaxy Watch</span>
+          <label class="bt-toggle">
+            <input type="checkbox">
+            <span class="bt-toggle-slider"></span>
+          </label>
         </div>
       </div>
     </div>
@@ -970,6 +1026,14 @@
 
     weatherWidget.addEventListener('click', () => {
       weatherWidget.classList.toggle('expanded');
+    });
+
+    document.querySelectorAll('.bt-toggle input').forEach(toggle => {
+      toggle.addEventListener('click', (e) => e.stopPropagation());
+      toggle.addEventListener('change', () => {
+        const device = toggle.closest('.bt-device');
+        device.classList.toggle('disconnected', !toggle.checked);
+      });
     });
 
     function closeWindow(id) {
